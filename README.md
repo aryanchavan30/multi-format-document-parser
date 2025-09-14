@@ -52,17 +52,112 @@ Organizations receive documents in various formats (PDFs, scans, emails, HTML) b
 - Python 3.11+
 - UV package manager (recommended) or pip
 - Google Gemini API Key
+- **Tesseract OCR Engine** (for image/scanned document processing)
 - 4GB+ RAM (for processing large documents)
 
 ## ⚡ Quick Start
 
-### 1. Clone the Repository
+### 1. Install Tesseract OCR
+
+**Tesseract is required for processing images and scanned PDFs. Install it first before setting up the Python environment.**
+
+#### Windows Installation
+
+**Option 1: Download Installer (Recommended)**
+1. Go to [Tesseract GitHub Releases](https://github.com/UB-Mannheim/tesseract/wiki)
+2. Download the latest Windows installer (e.g., `tesseract-ocr-w64-setup-5.3.3.20231005.exe`)
+3. Run the installer with administrator privileges
+4. **Important**: During installation, note the installation path (usually `C:\Program Files\Tesseract-OCR`)
+
+**Option 2: Using Chocolatey**
+```powershell
+# Install Chocolatey first if not installed
+# Then run:
+choco install tesseract
+```
+
+**Option 3: Using Winget**
+```powershell
+winget install --id UB-Mannheim.TesseractOCR
+```
+
+#### macOS Installation
+
+**Using Homebrew (Recommended):**
+```bash
+# Install Homebrew if not installed
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Tesseract
+brew install tesseract
+```
+
+**Using MacPorts:**
+```bash
+sudo port install tesseract
+```
+
+#### Linux Installation
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install tesseract-ocr tesseract-ocr-eng
+```
+
+**CentOS/RHEL/Fedora:**
+```bash
+# CentOS/RHEL
+sudo yum install tesseract tesseract-langpack-eng
+
+# Fedora
+sudo dnf install tesseract tesseract-langpack-eng
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S tesseract tesseract-data-eng
+```
+
+### 2. Set Up Tesseract Environment Variable
+
+#### Windows
+1. **Find Tesseract Installation Path**:
+   - Default: `C:\Program Files\Tesseract-OCR`
+   - If different, check your installation directory
+
+2. **Add to System PATH**:
+   - Press `Win + R`, type `sysdm.cpl`, press Enter
+   - Click "Environment Variables"
+   - Under "System Variables", find "Path" and click "Edit"
+   - Click "New" and add: `C:\Program Files\Tesseract-OCR`
+   - Click "OK" to save
+
+3. **Alternative: Add to .env file**:
+   ```bash
+   TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe
+   ```
+
+#### macOS/Linux
+Tesseract should be automatically available in PATH after installation. Verify with:
+```bash
+tesseract --version
+```
+
+If not found, add to your shell profile (`~/.bashrc`, `~/.zshrc`):
+```bash
+export PATH="/usr/local/bin:$PATH"  # macOS Homebrew
+# or
+export PATH="/opt/homebrew/bin:$PATH"  # macOS Apple Silicon
+```
+
+### 3. Clone the Repository
 ```bash
 git clone https://github.com/your-username/multi-format-document-parser.git
 cd multi-format-document-parser
 ```
 
-### 2. Set Up Python Environment
+### 4. Set Up Python Environment
 
 **Using UV (Recommended):**
 ```bash
@@ -97,7 +192,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Configure API Key
+### 5. Configure API Key
 
 **Step 1: Get Gemini API Key**
 1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
@@ -116,6 +211,9 @@ Edit the `.env` file and add your Gemini API key:
 # Required - Replace with your actual API key
 GEMINI_API_KEY=your_actual_gemini_api_key_here
 
+# Optional - Tesseract path (Windows only, if not in PATH)
+TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe
+
 # Optional - Storage paths  
 PARSER_DATA_PATH=parser_data
 TEMP_FILES_PATH=temp
@@ -126,7 +224,16 @@ MAX_AI_TOKENS=800
 LOG_LEVEL=INFO
 ```
 
-### 4. Run the Application
+### 6. Verify Installation
+```bash
+# Test Tesseract installation
+tesseract --version
+
+# Test Python environment
+python -c "import docling; print('Docling installed successfully')"
+```
+
+### 7. Run the Application
 ```bash
 streamlit run app.py
 ```
@@ -161,7 +268,7 @@ multi-format-document-parser/
 
 ### Document Processing Flow
 1. **Upload**: Supports PDF, DOCX, images, HTML, CSV, and more
-2. **Text Extraction**: Docling processes the document
+2. **Text Extraction**: Docling processes the document (with Tesseract OCR for images)
 3. **Smart Processing**: 
    - First document: Uses AI extraction + creates signature
    - Similar documents: Uses signature (free!)
@@ -274,6 +381,16 @@ Error: No Gemini API key found
 Solution: Check your .env file - ensure GEMINI_API_KEY is set correctly
 ```
 
+**❌ Tesseract Not Found**
+```
+Error: TesseractNotFoundError
+Solutions:
+1. Verify installation: tesseract --version
+2. Add to PATH (Windows) or check installation path
+3. Set TESSERACT_CMD in .env file
+4. Restart terminal/command prompt after PATH changes
+```
+
 **❌ Import Error: docling**
 ```bash
 Solution: pip install docling[pdf] or uv pip install docling[pdf]
@@ -295,6 +412,15 @@ Solution: Check interpretation logs for pattern matching scores
 Enable debug logging to see detailed matching process
 ```
 
+**❌ OCR Not Working on Images**
+```
+Solutions:
+1. Ensure Tesseract is installed and in PATH
+2. Check image quality (should be clear, high contrast)
+3. Try different image formats (PNG, JPEG, TIFF)
+4. Verify TESSERACT_CMD path in .env file (Windows)
+```
+
 ### Debug Mode
 
 Enable detailed logging for troubleshooting:
@@ -303,13 +429,23 @@ export LOG_LEVEL=DEBUG
 streamlit run app.py
 ```
 
+### Testing Tesseract Installation
+
+Create a test image with text and run:
+```bash
+# Test basic OCR functionality
+tesseract test_image.png output_text.txt
+
+# Check supported languages
+tesseract --list-langs
+```
+
 ## 🚀 Deployment Options
 
 ### Local Development
 ```bash
 streamlit run app.py
 ```
-
 
 ## 🆘 Support & Contributing
 
@@ -327,6 +463,7 @@ streamlit run app.py
 
 - **Docling Team**: Excellent multi-format document processing
 - **Google AI**: Gemini API for intelligent extraction
+- **Tesseract OCR**: Robust optical character recognition
 - **Streamlit**: Intuitive web framework
 - **Competition Organizers**: Challenging real-world problem
 
