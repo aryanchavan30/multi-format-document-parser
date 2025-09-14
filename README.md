@@ -7,10 +7,10 @@
 
 ## 🎥 Demo Video
 
-   <video width="800" controls>
-     <source src="https://drive.google.com/uc?export=download&id=1oxNRAwG5tCVIl5vQzUY_Wj23qi0Xkjcz" type="video/mp4">
-     Your browser does not support the video tag.
-   </video>
+[🎬 **Watch Demo Video - Multi-Format Document Parser**](https://drive.google.com/file/d/1oxNRAwG5tCVIl5vQzUY_Wj23qi0Xkjcz/view?usp=sharing)
+
+*Watch our 6-minute demo showcasing the hybrid pipeline, cost optimization, and signature learning in action.*
+
 ## 🚀 Problem Statement
 
 Organizations receive documents in various formats (PDFs, scans, emails, HTML) but need consistent JSON output for downstream systems. Traditional AI-only approaches become prohibitively expensive at scale.
